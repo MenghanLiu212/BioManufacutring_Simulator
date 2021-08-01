@@ -9,6 +9,8 @@ This includes:
     (3)Processing
     (4)Quality check
     (5)Finishing
+    
+    This code is the same as in the n42 folder
 """
 
 import BioMan_toolbox as toolbox
@@ -28,10 +30,6 @@ class Controller():
     def GetFeasibleActions(self, environment):
         
         return
-    
-    
-        
-    
     
 class Environment():
     def __init__(self, Design):
@@ -60,28 +58,29 @@ class Environment():
         #self.time_budget_for_Harvesting = 1000
         #self.time_budget_for_Processing = 1000
         self.Simulation_time_budget = 8760        #total time for patient arrival in a year's time
-        
+    
+    #not in use
     def num_of_hrv_operators(self,i):
         #Factor 4 corresponds to the harvesting operators count
         if i == 0:
             OPERATOR_HRV = 1000#round(NUM_PATIENTS/15)
         elif i == 1:
             OPERATOR_HRV = 1000#round(NUM_PATIENTS/25)
-        #as per new we are keeping it fixed    
+        #as on 08/01/2021 we are keeping it fixed at a big number 1000 to prevent bottleneck   
         """
         else:
             OPERATOR_HRV = 100#round(NUM_PATIENTS/35)
         """
         return OPERATOR_HRV        
   
-
+    #not in use
     def num_of_hrv_machine(self,i):
         #Factor 5 corresponds to the available harvesting machines count
         if i == 0:
             MACHINES_HRV = 1000#round(NUM_PATIENTS/10)
         elif i == 1:
             MACHINES_HRV = 1000#round(NUM_PATIENTS/20)
-        #as per new we are keeping it fixed
+        #as on 08/01/2021 we are keeping it fixed at a big number 1000 to prevent bottleneck
         """
         else:
             MACHINES_HRV = 100#round(2* NUM_PATIENTS/30)
@@ -95,14 +94,13 @@ class Environment():
             MACHINES_MFG = 100#round(NUM_PATIENTS/2)
         elif j == 1:
             MACHINES_MFG = 300#round(NUM_PATIENTS/5)
-
-
+            
         if i == 0:
             OPERATOR_MFG = MACHINES_MFG#/2#round(NUM_PATIENTS/5)
         elif i == 1:
             OPERATOR_MFG = 3*MACHINES_MFG/4#round(NUM_PATIENTS/10)
 
-        #as per new we are keep high and low
+        #as on 08/01/2021 new we are keep high and low
         """
         else:
             OPERATOR_MFG = 100#round(NUM_PATIENTS/20)
@@ -148,12 +146,6 @@ class Environment():
         self.hrv_machine_list = [toolbox.Machine('HM{}'.format(m+1), m+1, 'harvest') for m in range(0, int(self.Hrv_Bioreactors_Count))]
         self.MFG_operator_list = [toolbox.Operator('PO{}'.format(o+1), o+1, 'process') for o in range(0, int(self.MFG_Operators_Count))]
         self.MFG_machine_list = [toolbox.Machine('PM{}'.format(m+1), m+1, 'process') for m in range(0, int(self.MFG_Bioreactors_Count))]
-
-
-        #self.hrv_operator_list = [toolbox.Operator('HO{}'.format(o+1), o+1, 'harvest') for o in range(0, self.Hrv_Operators_Count)]
-        #self.hrv_machine_list = [toolbox.Machine('HM{}'.format(m+1), m+1, 'harvest') for m in range(0, self.Hrv_Bioreactors_Count)]
-        #self.MFG_operator_list = [toolbox.Operator('PO{}'.format(o+1), o+1, 'process') for o in range(0, self.MFG_Operators_Count)]
-        #self.MFG_machine_list = [toolbox.Machine('PM{}'.format(m+1), m+1, 'process') for m in range(0, self.MFG_Bioreactors_Count)]
         self.finish_stack = []
         
 
@@ -205,8 +197,9 @@ class Environment():
                                                     'hrv_operator_state_list', 'MFG_operator_state_list', 'hrv_machine_state_list', 'MFG_machine_state_list', 'queue_state_list', 'job_state_list',
                                                     'jobs_in_queue', 'jobs_in_rework', 'jobs_in_service', 'jobs_in_completed', 'total_job_num'])
         
-
+        #df to collect all data of each job 
         self.df_job=pd.DataFrame(columns=['Job_number','Alpha_low_mfg','Alpha_up_mfg','Delta_mfg','Gender','Blood vol','Patient Trgt Bld Count'])    
+        
         #first arrival
         new_job = toolbox.Job('J1', 1, self.queue_1, self.conversion_factor, self.BV_m_LB, self.BV_m_HB, self.BV_f_LB, self.BV_f_HB, self.alpha_low_ll, self.alpha_low_ul, self.alpha_up_ll, self.alpha_up_ul, self.delta_ll, self.delta_ul)
         
@@ -216,7 +209,7 @@ class Environment():
         
         print(new_job.alpha_low_mfg)
         
-        
+        #add new job to job list        
         self.job_list.append(new_job)
         first_event = toolbox.Event('patient {} arrival to queue_1'.format(new_job.id_num), 'Arrival', self.clock, self.queue_1, None, None, new_job, 0)
         self.add_event(first_event)
@@ -249,12 +242,6 @@ class Environment():
             self.df_this_design = self.df_this_design.append(a_series, ignore_index=True)
             #self.df_job=self.job_list
             
-            #self.df_job=pd.DataFrame(toolbox.Job.id_num)
-            #print(event.job)
-            #new_job = toolbox.Job('J1'
-            #this_df['hrv_opr_idle_cnt'] = this_df.apply(lambda row: row['hrv_operator_state_list'].count("idle") , axis=1)
-            #this_df['hrv_opr_idle_cnt'] = this_df.apply(lambda row: row['hrv_operator_state_list'].count("idle") , axis=1)
-        #self.df_job.to_csv('{}job_data.csv')
         """   
         for i in range(0,1000):
             print(toolbox.Job[i])
