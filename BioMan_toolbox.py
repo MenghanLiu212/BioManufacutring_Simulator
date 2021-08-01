@@ -38,15 +38,25 @@ class Event:
         
         
 class Job:
-    #also called patient
-    def __init__(self, name, id_num, place, conversion_factor, BV_m_LB, BV_m_HB, BV_f_LB, BV_f_HB):
+        #also called patient
+    def __init__(self, name, id_num, place, conversion_factor, BV_m_LB, BV_m_HB, BV_f_LB, BV_f_HB, alpha_low_ll, alpha_low_ul, alpha_up_ll, alpha_up_ul, delta_ll, delta_ul):
         self.name = name
         self.id_num = id_num
         self.place = place  #can be queue or machine
         self.state = 'initial'   #can be initial, harvesting/ed, processing/ed, finished
         self.rework_times = 0
         self.process_yield = 0  #yield is 0 at initial and will be changed in processing
-        
+        self.BV_m_LB=BV_m_LB
+        self.BV_m_HB=BV_m_HB 
+        self.BV_f_LB=BV_f_LB 
+        self.BV_f_HB=BV_f_HB 
+        self.alpha_low_ll=alpha_low_ll
+        self.alpha_low_ul=alpha_low_ul
+        self.alpha_up_ll=alpha_up_ll 
+        self.alpha_up_ul=alpha_up_ul 
+        self.delta_ll=delta_ll
+        self.delta_ul=delta_ul
+
         #gender generation
         flip = random.randint(0, 1)
         if (flip == 0):
@@ -64,8 +74,11 @@ class Job:
         
         #tgt bc
         self.patients_target_bc = self.BV*conversion_factor
-        
-        
+
+        self.delta_mfg= np.random.uniform(delta_ll,delta_ul)
+        self.alpha_up_mfg= np.random.uniform(alpha_up_ll,alpha_up_ul)
+        self.alpha_low_mfg= np.random.uniform(alpha_low_ll,alpha_low_ul)
+                
     def rework(self):
         self.rework_times += 1
         
@@ -76,6 +89,18 @@ class Job:
     def booked(self):
         self.state = 'booked'
         
+        
+class Patient_Alpha_and_Delta:
+    #used to generate alpha and delta values for each patient
+    def __init__(self, name, id_num, place, conversion_factor, BV_m_LB, BV_m_HB, BV_f_LB, BV_f_HB):
+        self.name = name
+        self.id_num = id_num
+        self.place = place  #can be queue or machine
+        self.state = 'initial'   #can be initial, harvesting/ed, processing/ed, finished
+        self.rework_times = 0
+        self.process_yield = 0  #yield is 0 at initial and will be changed in processing
+
+
 
 
 class Queue:
