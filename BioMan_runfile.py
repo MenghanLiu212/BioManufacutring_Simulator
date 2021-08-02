@@ -300,7 +300,7 @@ def Main():
         
         
                 #just for test--------
-        if design_run == 1:
+        if design_run == 4:
         	stop = timeit.default_timer()
         	print('Time: ', stop - start)
         	break
