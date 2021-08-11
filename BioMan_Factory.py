@@ -9,8 +9,6 @@ This includes:
     (3)Processing
     (4)Quality check
     (5)Finishing
-    
-    This code is the same as in the n42 folder
 """
 
 import BioMan_toolbox as toolbox
@@ -31,12 +29,19 @@ class Controller():
         
         return
     
+    
+        
+    
+    
 class Environment():
     def __init__(self, Design):
+        #self.df_this_design = pd.DataFrame()
         self.event_list = []
         self.clock = 0
         self.global_state = 'Initial'
-                
+        
+        #self.Yield_Curve_MFG = Design[0]
+        
         self.alphalow=Design[0]
         self.alphaup= Design[1]
         self.delta = Design[2]        
@@ -45,69 +50,72 @@ class Environment():
         self.Hrv_Operators_Count = self.num_of_hrv_operators(Design[5])
         self.Hrv_Bioreactors_Count = self.num_of_hrv_machine(Design[6])
         self.MFG_Operators_Count, self.MFG_Bioreactors_Count = self.num_of_mfg_operators_and_machine(Design[7],Design[8])
+        #self.QC_Operators_Count= self.num_of_hrv_operators(Design[9])
+        self.QC_Operators_Count= 50#10# 100     
         
+
         #params
-        self.patient_max_num = 2000        #maximum number of patients who can come for therapy
+        self.patient_max_num = 2000  #maximum number of patients who can come for therapy
         self.patient_arrival_distribution = 'Uniform'
         self.conversion_factor = 140000   #blood count multiplication factor
         self.BV_m_LB = 5                  # lower bound of blood vol in male
         self.BV_m_HB = 7.5                # higher bound of blood vol in male
         self.BV_f_LB = 3.5                # lower bound of blood vol in female
         self.BV_f_HB = 6.0                # higher bound of blood vol in female
-        self.time_budget_for_Arrival = 8760        #total time for patient arrival in a year's time
+        self.time_budget_for_Arrival = 8760      #total time for patient arrival in a year's time
         #self.time_budget_for_Harvesting = 1000
         #self.time_budget_for_Processing = 1000
-        self.Simulation_time_budget = 8760        #total time for patient arrival in a year's time
-    
-    #not in use
+        self.Simulation_time_budget = 8760    #total time for patient arrival in a year's time
+        
     def num_of_hrv_operators(self,i):
         #Factor 4 corresponds to the harvesting operators count
         if i == 0:
-            OPERATOR_HRV = 1000#round(NUM_PATIENTS/15)
+            OPERATOR_HRV = 100#round(NUM_PATIENTS/15)
         elif i == 1:
             OPERATOR_HRV = 1000#round(NUM_PATIENTS/25)
-        #as on 08/01/2021 we are keeping it fixed at a big number 1000 to prevent bottleneck   
+        #as per new as on (08/01/2021) we are keeping it fixed    
         """
         else:
             OPERATOR_HRV = 100#round(NUM_PATIENTS/35)
         """
         return OPERATOR_HRV        
   
-    #not in use
+
     def num_of_hrv_machine(self,i):
         #Factor 5 corresponds to the available harvesting machines count
         if i == 0:
-            MACHINES_HRV = 1000#round(NUM_PATIENTS/10)
+            MACHINES_HRV = 100#round(NUM_PATIENTS/10)
         elif i == 1:
-            MACHINES_HRV = 1000#round(NUM_PATIENTS/20)
-        #as on 08/01/2021 we are keeping it fixed at a big number 1000 to prevent bottleneck
+            MACHINES_HRV = 13#round(NUM_PATIENTS/20)
+        #as per new as on(08/01/2021)we are keeping it fixed
         """
         else:
             MACHINES_HRV = 100#round(2* NUM_PATIENTS/30)
         """
         return MACHINES_HRV
         
-        #gives the Mfg operators and machines count
+        
     def num_of_mfg_operators_and_machine(self,i,j):        
         #Factor 6 corresponds to the Mfg operators count 
         if j == 0:
             MACHINES_MFG = 100#round(NUM_PATIENTS/2)
         elif j == 1:
             MACHINES_MFG = 300#round(NUM_PATIENTS/5)
-            
+
+
         if i == 0:
-            OPERATOR_MFG = MACHINES_MFG#/2#round(NUM_PATIENTS/5)
+            OPERATOR_MFG = MACHINES_MFG/20#round(NUM_PATIENTS/5)
         elif i == 1:
             OPERATOR_MFG = 3*MACHINES_MFG/4#round(NUM_PATIENTS/10)
 
-        #as on 08/01/2021 new we are keep high and low
+        #as per new we are keep high and low
         """
         else:
             OPERATOR_MFG = 100#round(NUM_PATIENTS/20)
         """
         return OPERATOR_MFG, MACHINES_MFG
     
-     #not in use   
+        #not in use
     def num_of_mfg_machine(self,i):    
         #Factor 7 corresponds to the available Mfg machines(bio-reactors) count
         if i == 0:
@@ -124,7 +132,7 @@ class Environment():
 
         #alpha_low_ll, alpha_low_ul,alpha_up_ll, alpha_up_ul alpha_up_mfg, delta_ll, delta_ul, low_level_factor_mfg, up_level_factor_mfg, separator_1, separator_2, QM_Policy_MFG
     	#def Factor_design(self, alpha_low_mfg, alpha_up_mfg, delta_t_mfg, low_level_factor_mfg, up_level_factor_mfg, separator_1, separator_2, QM_Policy_MFG):
-    def Factor_design(self, alpha_low_ll, alpha_low_ul, alpha_up_ll, alpha_up_ul, delta_ll, delta_ul, low_level_factor_mfg, up_level_factor_mfg, separator_1, separator_2, QM_Policy_MFG):
+    def Factor_design(self, alpha_low_ll, alpha_low_ul, alpha_up_ll, alpha_up_ul, delta_ll, delta_ul, low_level_factor_mfg, up_level_factor_mfg, relaxed_separator_1, relaxed_separator_2, stressed_separator_1, stressed_separator_2, prob_relax, QM_Policy_MFG):
     	self.alpha_low_ll= alpha_low_ll
     	self.alpha_low_ul= alpha_low_ul
     	self.alpha_up_ll= alpha_up_ll
@@ -133,20 +141,31 @@ class Environment():
     	self.delta_ul=delta_ul
     	self.low_level_factor_mfg=low_level_factor_mfg
     	self.up_level_factor_mfg=up_level_factor_mfg
-    	self.separator_1=separator_1
-    	self.separator_2=separator_2
+
+    	self.relaxed_separator_1=relaxed_separator_1 
+    	self.relaxed_separator_2=relaxed_separator_2 
+    	self.stressed_separator_1=stressed_separator_1 
+    	self.stressed_separator_2=stressed_separator_2 
+    	self.prob_relax=prob_relax 
     	self.QM_Policy_MFG=QM_Policy_MFG
         
         
     def Machine_and_Operator_Setup(self):
-        self.job_list = []  #Job is defined by patient arrival function.
+        self.job_list = []  #Job is defined by patient arrival function 
+        #name, q_type, capacity, place
         self.queue_1 = toolbox.Queue('queue_1', 'machine_queue_shared', 'infinite', 'harvest')
         self.queue_2 = toolbox.Queue('queue_2', 'machine_queue_shared', 'infinite', 'process')
+        self.queue_3 = toolbox.Queue('queue_3', 'machine_queue_shared', 'infinite', 'qc')        
         self.hrv_operator_list = [toolbox.Operator('HO{}'.format(o+1), o+1, 'harvest') for o in range(0, int(self.Hrv_Operators_Count))]
         self.hrv_machine_list = [toolbox.Machine('HM{}'.format(m+1), m+1, 'harvest') for m in range(0, int(self.Hrv_Bioreactors_Count))]
         self.MFG_operator_list = [toolbox.Operator('PO{}'.format(o+1), o+1, 'process') for o in range(0, int(self.MFG_Operators_Count))]
         self.MFG_machine_list = [toolbox.Machine('PM{}'.format(m+1), m+1, 'process') for m in range(0, int(self.MFG_Bioreactors_Count))]
+        self.QC_operator_list = [toolbox.Operator('QO{}'.format(q+1), q+1, 'qc') for q in range(0, int(self.QC_Operators_Count))]        
         self.finish_stack = []
+        """
+        Sets up the job list, mfg and hrv operators and machines  
+        """
+		
         
 
     def Take_action(self):
@@ -194,23 +213,24 @@ class Environment():
         
         #df writing
         self.df_this_design = pd.DataFrame(columns=['Clock', 'Event name', 'Event ID', 'Event happen time', 'Event place', 'Event machine', 'Event operator', 'Event job', 'Event rework times', 'Job yield', 
-                                                    'hrv_operator_state_list', 'MFG_operator_state_list', 'hrv_machine_state_list', 'MFG_machine_state_list', 'queue_state_list', 'job_state_list',
-                                                    'jobs_in_queue', 'jobs_in_rework', 'jobs_in_service', 'jobs_in_completed', 'total_job_num'])
+                                                    'hrv_operator_state_list', 'MFG_operator_state_list', 'QC_operator_state_list', 'hrv_machine_state_list', 'MFG_machine_state_list', 'queue_state_list', 'job_state_list',
+                                                    'jobs_in_queue', 'jobs_in_rework', 'jobs_in_service','jobs_in_qc', 'jobs_in_completed', 'total_job_num'])
         
-        #df to collect all data of each job 
+        #df to collect job datas
         self.df_job=pd.DataFrame(columns=['Job_number','Alpha_low_mfg','Alpha_up_mfg','Delta_mfg','Gender','Blood vol','Patient Trgt Bld Count'])    
         
         #first arrival
         new_job = toolbox.Job('J1', 1, self.queue_1, self.conversion_factor, self.BV_m_LB, self.BV_m_HB, self.BV_f_LB, self.BV_f_HB, self.alpha_low_ll, self.alpha_low_ul, self.alpha_up_ll, self.alpha_up_ul, self.delta_ll, self.delta_ul)
         
+        #append job data to df_job
         to_append2 = [new_job.id_num] + [new_job.alpha_low_mfg] + [new_job.alpha_up_mfg] + [new_job.delta_mfg] + [new_job.gender] + [new_job.BV] + [new_job.patients_target_bc]
         b_series = pd.Series(to_append2, index = self.df_job.columns)
         self.df_job = self.df_job.append(b_series, ignore_index=True)
         
-        print(new_job.alpha_low_mfg)
+        #print(new_job.alpha_low_mfg)
         
-        #add new job to job list        
         self.job_list.append(new_job)
+        # Event: name, e_type, e_happen_time, place, machine, operator, job, rework_times
         first_event = toolbox.Event('patient {} arrival to queue_1'.format(new_job.id_num), 'Arrival', self.clock, self.queue_1, None, None, new_job, 0)
         self.add_event(first_event)
         
@@ -240,13 +260,7 @@ class Environment():
                 
             a_series = pd.Series(to_append, index = self.df_this_design.columns)
             self.df_this_design = self.df_this_design.append(a_series, ignore_index=True)
-            #self.df_job=self.job_list
-            
-        """   
-        for i in range(0,1000):
-            print(toolbox.Job[i])
-        #print('Simulation finished due to time budget reached.')
-        """
+        
         return self.df_this_design, self.df_job
 
 
@@ -254,11 +268,12 @@ class Environment():
         #get state info for the machine, operator,queue, job
         hrv_operator_state_list = [o.state for o in self.hrv_operator_list]
         MFG_operator_state_list = [o.state for o in self.MFG_operator_list]
+        QC_operator_state_list = [o.state for o in self.QC_operator_list] #QC_operator_list
         hrv_machine_state_list = [m.state for m in self.hrv_machine_list]
         MFG_machine_state_list = [m.state for m in self.MFG_machine_list]
-        queue_state_list = [self.queue_1.jobs_in_queue, self.queue_2.jobs_in_queue]
+        queue_state_list = [self.queue_1.jobs_in_queue, self.queue_2.jobs_in_queue,self.queue_3.jobs_in_queue]
         job_state_list = [j.state for j in self.job_list]
-        current_state_info = [hrv_operator_state_list, MFG_operator_state_list, hrv_machine_state_list, MFG_machine_state_list, queue_state_list, job_state_list]
+        current_state_info = [hrv_operator_state_list, MFG_operator_state_list, QC_operator_state_list, hrv_machine_state_list, MFG_machine_state_list, queue_state_list, job_state_list]
         return current_state_info
         
     
@@ -272,7 +287,12 @@ class Environment():
             for operator in self.MFG_operator_list:
                 if operator.state == 'idle':
                     available_operator_set.append(operator)
+        elif o_type == 'qc':
+            for operator in self.QC_operator_list:
+                if operator.state == 'idle':
+                    available_operator_set.append(operator)
         return available_operator_set
+
         
         
     def get_available_machine(self, m_type):
@@ -293,6 +313,7 @@ class Environment():
         jobs_in_rework = 0
         jobs_in_service = 0
         jobs_in_completed = 0
+        jobs_in_qc = 0
         for item in self.job_list:
             #print('job state', item.state)
             if item.state == 'Finished':
@@ -311,8 +332,11 @@ class Environment():
                 else:
                     jobs_in_rework +=1
                     #print('jobs_in_rework:', jobs_in_rework)
+            elif item.state == 'qc':
+                jobs_in_qc+=1
+
         total_job_num = len(self.job_list)
-        job_state_stats = [jobs_in_queue, jobs_in_rework, jobs_in_service, jobs_in_completed, total_job_num]
+        job_state_stats = [jobs_in_queue, jobs_in_rework, jobs_in_service, jobs_in_qc, jobs_in_completed, total_job_num]
         #print('job_state_stats:',job_state_stats)
         return job_state_stats
     
@@ -331,15 +355,14 @@ class Environment():
                 if len(self.job_list) <= self.patient_max_num and self.clock <= self.time_budget_for_Arrival:
                     inter_arrival_time = np.random.randint(4, 10)
                     next_new_job = toolbox.Job('J{}'.format(event.job.id_num +1),event.job.id_num +1, self.queue_1, self.conversion_factor, self.BV_m_LB, self.BV_m_HB, self.BV_f_LB, self.BV_f_HB,  self.alpha_low_ll, self.alpha_low_ul, self.alpha_up_ll, self.alpha_up_ul, self.delta_ll, self.delta_ul)
-                
+                	
+                	#append job data to df_job
                     to_append2 = [next_new_job.id_num] + [next_new_job.alpha_low_mfg] + [next_new_job.alpha_up_mfg] + [next_new_job.delta_mfg] + [next_new_job.gender] + [next_new_job.BV] + [next_new_job.patients_target_bc]
                     b_series = pd.Series(to_append2, index = self.df_job.columns)
                     self.df_job = self.df_job.append(b_series, ignore_index=True)
-                    
-                    
-                    
-                    
+               
                     self.job_list.append(next_new_job)
+                    #first_event = toolbox.Event('patient {} arrival to queue_1'.format(new_job.id_num), 'Arrival', self.clock, self.queue_1, None, None, new_job, 0)
                     next_arrival_event = toolbox.Event('patient {} arrival to queue_1'.format(next_new_job.id_num), 'Arrival', self.clock+inter_arrival_time, self.queue_1, None, None, next_new_job, 0)
                     self.add_event(next_arrival_event)
                 #Go to harvest operator if feasible
@@ -366,6 +389,22 @@ class Environment():
                     chosen_operator.booked()
                     chosen_machine.booked()
                     self.add_event(next_event)
+                    
+            elif event.place == self.queue_3:
+                self.queue_3.add_job_to_queue(event.job)
+                event.job.put_job_to(self.queue_3, 'in queue')
+                #go to qc operator if feasible
+                if self.get_available_operator('qc') != []:
+                    chosen_operator = random.choice(self.get_available_operator('qc'))
+                    #chosen_machine = random.choice(self.get_available_machine('process'))
+                    #depart
+                    next_event = toolbox.Event('patient {} depart queue_3'.format(event.job.id_num), 'Departure', self.clock, self.queue_3, None, chosen_operator, event.job, event.rework_times)
+                    event.job.booked()
+                    chosen_operator.booked()
+                    #chosen_machine.booked()
+                    self.add_event(next_event)
+                    
+
         
         elif event.e_type == 'Departure':
             if event.place == self.queue_1:
@@ -380,6 +419,13 @@ class Environment():
                 #schedule go to process operator setup
                 next_event = toolbox.Event('patient {} Start process setup'.format(event.job.id_num), 'Start_setup', self.clock, event.operator, event.machine, event.operator, event.job, event.rework_times)
                 self.add_event(next_event)
+            elif event.place == self.queue_3:
+                #process event
+                self.queue_3.depart_job_to_queue(event.job)
+                #schedule go to process operator setup
+                next_event = toolbox.Event('patient {} Quality check'.format(event.job.id_num), 'Start_Quality_Check', self.clock, event.operator, event.machine, event.operator, event.job, event.rework_times)
+                self.add_event(next_event)
+
             
         elif event.e_type == 'Start_setup':
             if event.machine.m_type == 'harvest':
@@ -423,7 +469,7 @@ class Environment():
             #process event
             event.job.put_job_to(event.machine, 'harvesting')
             event.operator.start_work(event.job, event.machine)
-            event.machine.start_work(event.job, event.operator)
+            event.machine.start_work(event.operator)
             #schedule next
             harvest_duration = np.random.randint(6, 9)
             harvest_yield = event.job.patients_target_bc * 0.8
@@ -433,7 +479,7 @@ class Environment():
             
         elif event.e_type == 'End_harvesting':
             #process event
-            event.operator.end_work()
+            #event.operator.end_work()
             event.machine.end_work()
             #schedule next
             next_event = toolbox.Event('patient {} arrival to queue_2'.format(event.job.id_num), 'Arrival', self.clock, self.queue_2, None, None, event.job, event.rework_times)
@@ -443,6 +489,7 @@ class Environment():
                 chosen_operator = random.choice(self.get_available_operator('harvest'))
                 chosen_machine = random.choice(self.get_available_machine('harvest'))
                 next_job_to_dpt = self.queue_1.get_next_job_to_depart()
+                #def __init__(self, name, e_type, e_happen_time, place, machine, operator, job, rework_times
                 next_event = toolbox.Event('patient {} depart queue_1'.format(next_job_to_dpt.id_num), 'Departure', self.clock, self.queue_1, chosen_machine, chosen_operator, next_job_to_dpt, event.rework_times)
                 event.job.booked()
                 chosen_operator.booked()
@@ -453,7 +500,8 @@ class Environment():
             #process event
             event.job.put_job_to(event.machine, 'processing')
             event.operator.start_work(event.job, event.machine)
-            event.machine.start_work(event.job, event.operator)
+            #changing the operator end work to idle
+            event.machine.start_work(event.operator)
             #schedule next
             #bc = event.job.patients_target_bc
             bc = event.job.process_yield
@@ -466,10 +514,14 @@ class Environment():
             
         elif event.e_type == 'End_processing':
             #process event
-            event.operator.end_work()
+            #event.operator.end_work()
             event.machine.end_work()
+
+            #chose_operator = random.choice(self.get_available_operator('process')) # or harvesting operator as well??
+            #chose_operator.qc_()
             #schedule next
-            next_event = toolbox.Event('patient {} Quality check'.format(event.job.id_num), 'Quality_check', self.clock, 'quality check, no place', None, None, event.job, event.rework_times)
+            #'patient {}'.format(event.job.id_num), 'Arrival', self.clock, self.queue_2, None, None, event.job, event.rework_times
+            next_event = toolbox.Event('patient {} arrival to queue_3'.format(event.job.id_num), 'Arrival', self.clock, self.queue_3, None, None, event.job, event.rework_times)
             self.add_event(next_event)
             #if end one, schedule a departure on queue_2
             if self.get_available_operator('process') != [] and self.get_available_machine('process') != [] and self.queue_2.get_next_job_to_depart() != None:
@@ -481,8 +533,22 @@ class Environment():
                 chosen_operator.booked()
                 chosen_machine.booked()
                 self.add_event(next_event)
+
+        elif event.e_type == 'Start_Quality_Check':
+            #process event
+            event.job.put_job_to(None, 'qc')
+            event.operator.start_qc(event.job)
+            #changing the operator end work to idle
+            #event.machine.start_work(event.operator)
+            qc_duration = np.random.randint(6, 9)
+            #schedule next
+            print(event.job.id_num)
+            next_event = toolbox.Event('patient {} End Quality Check'.format(event.job.id_num), 'Quality_check', self.clock+qc_duration, event.place, event.machine, event.operator, event.job, event.rework_times)
+            self.add_event(next_event)
             
         elif event.e_type == 'Quality_check':
+            event.operator.end_qc()
+            #event.job.put_job_to(None, 'Finish')
             #process event
             test_result = self.quality_policy(self.QM_Policy_MFG, event.job)
             #print('test result on job {}:'.format(event.job.name), test_result)
@@ -514,9 +580,19 @@ class Environment():
         t_normal_mfg = (t_up_new_mfg+t_low_new_mfg)/2
         
         y1_mfg = event.job.alpha_low_mfg * t_low_new_mfg #1.2*self.alpha_low_mfg * t_low_new_mfg #very good patients
-        
         y2_mfg = bc #normal patient 
         y3_mfg = bc - event.job.alpha_up_mfg*max(0,t_up_new_mfg-t_up_mfg)
+
+        #randomly choose whether the patient is treated in a relaxed or stressed environment
+        coin_toss= np.random.uniform(0,1)
+        print(self.prob_relax)
+        if (coin_toss<=self.prob_relax):
+        	separator_1=self.relaxed_separator_1
+        	separator_2=self.relaxed_separator_2
+        elif (coin_toss>self.prob_relax):
+        	separator_1=self.stressed_separator_1
+        	separator_2=self.stressed_separator_2
+
         """
         U_3_mfg = np.random.uniform(0, 1)
         if (U_3_mfg <= 0.90):
@@ -529,12 +605,12 @@ class Environment():
         #patient mix for some patients should be relaxed and stressed for some
         
         s = np.random.uniform(0, 1)
-        if (s <= self.separator_1):
+        if (s <= separator_1):
             p_duration = t_low_new_mfg*24
             #p_yield = y1_mfg
             p_yield = np.random.uniform(y1_mfg*(1-0.5*10**(-3)),y1_mfg*(1+0.5*10**(-3)))
 
-        elif (self.separator_1 < s <= self.separator_2):
+        elif (separator_1 < s <= separator_2):
             p_duration = t_normal_mfg*24
             #p_yield = y2_mfg
             p_yield = np.random.uniform(y2_mfg*(1-0.5*10**(-3)),y2_mfg*(1+0.5*10**(-3)))
@@ -557,7 +633,7 @@ class Environment():
         #calculating P(Y'>= Y* / Ytilda>= Y*) 
         #i.e. proability of measured yield being more than expected yield given calculated yield is more than expected
         #P(Y'>= Y* / Ytilda>= Y*)  = P(Ytilda >= Y* / Y' >= Y*) * P(Y' >= Y*) / [P(Ytilda >= Y* / Y' >= Y*) * P(Y' >= Y*) + P(Ytilda >= Y* / Y' < Y*) * P(Y' < Y*)]
-        alpha_HF = 0.95#(P_1_HF * P_3_HF) / (P_1_HF * P_3_HF + P_2_HF * (1 - P_3_HF))
+        alpha_HF = 0.95#(P_1_HF * P_3_HF) / (P_1_HF * P_3_HF + P_2_HF * (1 - P_3_HF))  = 0.6785
         U1 = np.random.uniform(0, 1)
         if (U1 <= alpha_HF):
             Test_Result = 'Sample Passed'
@@ -569,8 +645,8 @@ class Environment():
         P_1_HF = 0.99   #P(Ytilda >= Y* / Y' >= Y*) #P(viable/Test = Positive)
         P_2_HF = 0.10   #P(Ytilda >= Y* / Y' < Y*)  #P(viable/Test = Negative)
         P_3_HF = 0.65   #P(Y' >= Y*) #P(Measured Yield < Expected Yield)
-        Beta_HF = 0.9#((1-P_1_HF)* P_3_HF) / (((1-P_1_HF)* P_3_HF) + ((1-P_2_HF)*(1-P_3_HF)))
-        U2 = np.random.uniform(0, 1)
+        Beta_HF = 0.9#((1-P_1_HF)* P_3_HF) / (((1-P_1_HF)* P_3_HF) + ((1-P_2_HF)*(1-P_3_HF))) =  0.02021772
+        U2 = np.random.uniform(0, 1) 
         if (U2 <= Beta_HF):
             Test_Result = 'Sample Passed'    #It was fail, but Test confirms Pass
         else:
@@ -582,7 +658,7 @@ class Environment():
         P_2_LF = 0.45   #P(Ytilda >= Y* / Y' < Y*)  #P(viable/Test = Negative)
         P_3_LF = 0.40   #P(Y' >= Y*) #P(Measured Yield < Expected Yield)
         #calculating P(Y'>= Y* / Ytilda < Y*)
-        alpha_LF = 0.9#(P_1_LF * P_3_LF) / (P_1_LF * P_3_LF + P_2_LF * (1 - P_3_LF))
+        alpha_LF = 0.9#(P_1_LF * P_3_LF) / (P_1_LF * P_3_LF + P_2_LF * (1 - P_3_LF)) = 0.55737704
         U3 = np.random.uniform(0, 1)
         if (U3 <= alpha_LF):
             Test_Result = 'Sample Passed'
@@ -594,7 +670,7 @@ class Environment():
         P_1_LF = 0.85   #P(Ytilda >= Y* / Y' >= Y*) #P(viable/Test = Positive)
         P_2_LF = 0.45   #P(Ytilda >= Y* / Y' < Y*)  #P(viable/Test = Negative)
         P_3_LF = 0.40   #P(Y' >= Y*) #P(Measured Yield < Expected Yield)
-        Beta_LF = 0.95#((1-P_1_LF)* P_3_LF) / (((1-P_1_LF)* P_3_LF) + ((1-P_2_LF)*(1-P_3_LF)))
+        Beta_LF = 0.95#((1-P_1_LF)* P_3_LF) / (((1-P_1_LF)* P_3_LF) + ((1-P_2_LF)*(1-P_3_LF))) = 0.15384615
         U4 = np.random.uniform(0, 1)
         if (U4 <= Beta_LF):
             Test_Result = 'Sample Passed'    #It was fail, but Test confirms Pass
