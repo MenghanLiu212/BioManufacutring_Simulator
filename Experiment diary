@@ -1,0 +1,24 @@
+On 08/11/2021
+
+Currently we are running the following BioMan experiment
+
+The factors taken in consideration for the experiment is:
+
+    #levels = [alphalow, alphaup, delta, Patient mix, QM Policy, Hrv Operator, Hrv Machines, Mfg Operators, Mfg Machines]
+            = [   2     ,   2   ,   2   ,   5       ,     1(3)  ,   1(2)      ,     1(2)    ,     2        ,      2     ]
+
+We have a maximum of 2000 patients and run the experiment for 1 year i.e. 8760 hours. There is no time limit on when the patients can come in the system.
+
+1. We currently have 
+3 types of operators -(1) Harvesting (2) Processing (3) Quality Check (QC)
+2 types of machines - (1) Harvesting (2) Processing
+3 types of queues (1) for jobs who have just arrived in the system (2) for jobs who are in line to go to manufacturing stage (3) for jobs who are in line to go to QC stage
+
+We assume the the QC operator has his own QC setup (i.e. Number of QC operators = number of QC machines)
+
+We use 1000 harvesting operators and 1000 harvesting machines to prevent bottleneck at processing (this will be changed later).
+We are currently using 100 manufacturing machines and (mfg machines/10) manufacturing operators for single level experiment.
+In QC we have 50 qc operators.
+
+The operator becomes free(idle) once the machine is setup and manufacturing starts. This allows him to be assigned to other available machine and job in queue.
+The harvesting and processing times consist of the harvesting as well as transportation time from one stage to other. (hrv -> mfg, mfg -> qc)
