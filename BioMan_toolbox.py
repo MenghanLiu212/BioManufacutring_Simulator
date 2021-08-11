@@ -37,25 +37,27 @@ class Event:
         
         
         
-class Job:
-        #also called patient
+class Job:    
+    #also called patient
     def __init__(self, name, id_num, place, conversion_factor, BV_m_LB, BV_m_HB, BV_f_LB, BV_f_HB, alpha_low_ll, alpha_low_ul, alpha_up_ll, alpha_up_ul, delta_ll, delta_ul):
         self.name = name
         self.id_num = id_num
         self.place = place  #can be queue or machine
-        self.state = 'initial'   #can be initial, harvesting/ed, processing/ed, finished
+        self.state = 'initial'   #can be initial, harvesting/ed, processing/ed, finished #also in queue
         self.rework_times = 0
         self.process_yield = 0  #yield is 0 at initial and will be changed in processing
-        self.BV_m_LB=BV_m_LB
-        self.BV_m_HB=BV_m_HB 
-        self.BV_f_LB=BV_f_LB 
-        self.BV_f_HB=BV_f_HB 
-        self.alpha_low_ll=alpha_low_ll
-        self.alpha_low_ul=alpha_low_ul
-        self.alpha_up_ll=alpha_up_ll 
-        self.alpha_up_ul=alpha_up_ul 
-        self.delta_ll=delta_ll
-        self.delta_ul=delta_ul
+        self.BV_m_LB=BV_m_LB            #lower bound of male blood vol
+        self.BV_m_HB=BV_m_HB            #higher bound of male blood vol
+        self.BV_f_LB=BV_f_LB            #lower bound of female blood vol
+        self.BV_f_HB=BV_f_HB            #higher bound of female blood vol
+        self.alpha_low_ll=alpha_low_ll  #lower limit of alpha low 
+        self.alpha_low_ul=alpha_low_ul  #higher limit of alpha low
+        self.alpha_up_ll=alpha_up_ll    #lower limit of alpha up
+        self.alpha_up_ul=alpha_up_ul    #higher limit of alpha up
+        self.delta_ll=delta_ll          #lower limit of delta
+        self.delta_ul=delta_ul          #upper limit of delta
+
+
 
         #gender generation
         flip = random.randint(0, 1)
@@ -75,10 +77,11 @@ class Job:
         #tgt bc
         self.patients_target_bc = self.BV*conversion_factor
 
+        #delta, alpha_up, alpha_low values generated from the limits
         self.delta_mfg= np.random.uniform(delta_ll,delta_ul)
         self.alpha_up_mfg= np.random.uniform(alpha_up_ll,alpha_up_ul)
         self.alpha_low_mfg= np.random.uniform(alpha_low_ll,alpha_low_ul)
-                
+        
     def rework(self):
         self.rework_times += 1
         
@@ -89,19 +92,6 @@ class Job:
     def booked(self):
         self.state = 'booked'
         
-        
-class Patient_Alpha_and_Delta:
-    #used to generate alpha and delta values for each patient
-    def __init__(self, name, id_num, place, conversion_factor, BV_m_LB, BV_m_HB, BV_f_LB, BV_f_HB):
-        self.name = name
-        self.id_num = id_num
-        self.place = place  #can be queue or machine
-        self.state = 'initial'   #can be initial, harvesting/ed, processing/ed, finished
-        self.rework_times = 0
-        self.process_yield = 0  #yield is 0 at initial and will be changed in processing
-
-
-
 
 class Queue:
     def __init__(self, name, q_type, capacity, place):
@@ -138,7 +128,7 @@ class Queue:
     
 class Machine:
     """
-    Machine we have: harvesting, 
+    Machine we have: harvesting, manufacturing
     """
     def __init__(self, name,id_num, m_type):
         self.name = name
@@ -155,13 +145,14 @@ class Machine:
         self.state = 'setup'
         
     def end_setup(self):
-        self.job = None
+        #self.job = None
         self.operator = None
         self.state = 'setup_end'        
         
-    def start_work(self, job, operator):
-        self.job = job
-        self.operator = operator
+    def start_work(self, operator):
+        #self.job = job
+        #self.operator = operator
+        self.operator = None
         self.state = 'busy'
         
     def end_work(self):
@@ -170,7 +161,7 @@ class Machine:
         self.state = 'idle'
         
     def booked(self):
-        self.state = 'booked'
+        self.state = 'booked' #it is in queue and it is booked
 
     
     
@@ -196,14 +187,22 @@ class Operator:
         
     def start_work(self, job, machine):
         self.job = job
-        self.machine = machine
-        self.state = 'busy'
-        
+        self.machine = None
+        self.state = 'idle' #can we put idle here for our case
+    """    
     def end_work(self):
         self.job = None
         self.machine = None
         self.state = 'idle'
+    """
+    def start_qc(self,job):
+        self.job = job
+        self.state = 'busy'
         
+    def end_qc(self):
+        self.job = None
+        self.state = 'idle' #can we put idle here for our case      
+       
     def booked(self):
         self.state = 'booked'
 
