@@ -56,6 +56,7 @@ class Job:
         self.alpha_up_ul=alpha_up_ul    #higher limit of alpha up
         self.delta_ll=delta_ll          #lower limit of delta
         self.delta_ul=delta_ul          #upper limit of delta
+        self.processingtime=0           #time at which processing is done
 
 
 
@@ -91,6 +92,9 @@ class Job:
 
     def booked(self):
         self.state = 'booked'
+
+    def save_process_time(self, time):
+        self.processingtime=time
         
 
 class Queue:
@@ -103,8 +107,10 @@ class Queue:
         
     def add_job_to_queue(self, job):
         if self.capacity == 'infinite':
+            print("FLAG 1") 
             self.jobs_in_queue.append(job)
         elif len(self.jobs_in_queue) <= self.capacity:
+            print("FLAG 2")  
             self.jobs_in_queue.append(job)
         else:
             print('over crowded queue!')
@@ -112,6 +118,7 @@ class Queue:
     
     def depart_job_to_queue(self, job):
         self.jobs_in_queue.remove(job)
+        print("Departure Job from Queue")
     
     def get_next_job_to_depart(self):
         temp=[]
