@@ -136,6 +136,51 @@ def cell_state_graph_new_o(x, y, design_run, pname, idle,start_setup, setup_end,
 
 
 
+def plot_cell_state_graph_o_abs_states(this_df,design_run,idle,start_setup, setup_end, booked, pname):
+    #print('plot_cell_mfg_event_calendar_row:', mfg_event_calendar.iloc[0])
+    cell_graph_x = np.array(this_df['Clock'].values, dtype=float)
+    cell_graph_y = np.array(this_df[[idle, start_setup, setup_end, booked]].values, dtype=float)
+    cell_graph_x_trans = np.transpose(cell_graph_x)
+    cell_graph_y_trans = np.transpose(cell_graph_y)
+    cell_state_graph_new_o_abs_states(cell_graph_x_trans, cell_graph_y_trans,design_run, pname, idle,start_setup, setup_end, booked)
+
+def cell_state_graph_new_o_abs_states(x, y, design_run, pname, idle,start_setup, setup_end, booked):
+    # Make new array consisting of fractions of column-totals,
+    # using .astype(float) to avoid integer division
+    #percent = y /  y.sum(axis=0).astype(float) * 100 
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.stackplot(x, y, labels = [pname+'_idle_cnt',pname+'_start_setup_cnt',pname+'_setup_end_cnt',pname+'_booked_cnt'])
+    ax.legend(loc='upper left')
+    ax.set_title('100 % stacked area chart')
+    ax.set_ylabel('Number of {}'.format(pname))
+    ax.margins(0, 0) # Set margins to avoid "whitespace"
+    plt.savefig('{}Abs_Figure_for_{}_{}.png'.format(design_run,pname,design_run))
+
+
+
+def plot_cell_state_graph_m_abs_states(this_df,design_run,idle,start_setup, setup_end, busy, booked, pname):
+    #print('plot_cell_mfg_event_calendar_row:', mfg_event_calendar.iloc[0])
+    cell_graph_x = np.array(this_df['Clock'].values, dtype=float)
+    cell_graph_y = np.array(this_df[[idle, start_setup, setup_end, busy, booked]].values, dtype=float)
+    cell_graph_x_trans = np.transpose(cell_graph_x)
+    cell_graph_y_trans = np.transpose(cell_graph_y)
+    cell_state_graph_new_m_abs_states(cell_graph_x_trans, cell_graph_y_trans,design_run, pname, idle,start_setup, setup_end, busy, booked)
+
+def cell_state_graph_new_m_abs_states(x, y, design_run, pname, idle,start_setup, setup_end, busy, booked):
+    # Make new array consisting of fractions of column-totals,
+    # using .astype(float) to avoid integer division
+    #percent = y /  y.sum(axis=0).astype(float) * 100 
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.stackplot(x, y, labels = [pname+'_idle_cnt',pname+'_start_setup_cnt',pname+'_setup_end_cnt',pname+'_busy_cnt',pname+'_booked_cnt'])
+    ax.legend(loc='upper left')
+    ax.set_title('100 % stacked area chart')
+    ax.set_ylabel('Number of {}'.format(pname))
+    ax.margins(0, 0) # Set margins to avoid "whitespace"
+    plt.savefig('{}Abs_Figure_for_{}_{}.png'.format(design_run,pname,design_run))
+
+
 def plot_cell_state_job(this_df,design_run):
     #print('plot_cell_mfg_event_calendar_row:', mfg_event_calendar.iloc[0])
     cell_graph_x = np.array(this_df['Clock'].values, dtype=float)
@@ -251,7 +296,8 @@ def Main():
         OurEnvironment.Factor_design(alpha_low_ll, alpha_low_ul,alpha_up_ll, alpha_up_ul, delta_ll, delta_ul, low_level_factor_mfg, up_level_factor_mfg, relaxed_separator_1, relaxed_separator_2, stressed_separator_1, stressed_separator_2, prob_relax, QM_Policy_MFG)
         start = timeit.default_timer()
         this_df, df_job = OurEnvironment.Simulate()
-
+        print("SIM DONE")
+        print("SIM DONE CHECK")
         #adding collumns to the this_df which show the count of idle, setup, setup_end, busy, booked operators and machines at each time epoch
         
         #'_opr_idle_cnt','hrv_opr_start_setup_cnt','hrv_opr_setup_end_cnt','hrv_opr_busy_cnt','hrv_opr_booked_cnt'
@@ -309,18 +355,34 @@ def Main():
         plot_cell_state_job_abs(this_df,design_run)
         """
         #plotting graphs to get png files
-        plot_cell_state_graph_o(this_df,design_run,'hrv_opr_idle_cnt','hrv_opr_start_setup_cnt','hrv_opr_setup_end_cnt','hrv_opr_booked_cnt','hrc_opr')
+        plot_cell_state_graph_o(this_df,design_run,'hrv_opr_idle_cnt','hrv_opr_start_setup_cnt','hrv_opr_setup_end_cnt','hrv_opr_booked_cnt','hrv_opr')
         plot_cell_state_graph_o(this_df,design_run,'mfg_opr_idle_cnt','mfg_opr_start_setup_cnt','mfg_opr_setup_end_cnt','mfg_opr_booked_cnt','mfg_opr')
         plot_cell_state_graph_m(this_df,design_run,'hrv_mc_idle_cnt','hrv_mc_start_setup_cnt','hrv_mc_setup_end_cnt','hrv_mc_busy_cnt','hrv_mc_booked_cnt','hrv_mc')
         plot_cell_state_graph_m(this_df,design_run,'mfg_mc_idle_cnt','mfg_mc_start_setup_cnt','mfg_mc_setup_end_cnt','mfg_mc_busy_cnt','mfg_mc_booked_cnt','mfg_mc')
         plot_cell_state_job(this_df,design_run)
         #plot_cell_state_graph_for_abs_value(this_df,design_run,'mfg_opr_busy_cnt')
         plot_cell_state_graph_for_abs_value(this_df,design_run,'mfg_opr_idle_cnt')
+
+        plot_cell_state_graph_for_abs_value(this_df,design_run,'hrv_mc_busy_cnt')
+        plot_cell_state_graph_for_abs_value(this_df,design_run,'hrv_mc_idle_cnt')
+        
+
         plot_cell_state_graph_for_abs_value(this_df,design_run,'mfg_mc_busy_cnt')
         plot_cell_state_graph_for_abs_value(this_df,design_run,'mfg_mc_idle_cnt')
         plot_cell_state_graph_for_abs_value(this_df,design_run,'qc_opr_idle_cnt')
         plot_cell_state_graph_for_abs_value(this_df,design_run,'qc_opr_busy_cnt')
+        
         plot_cell_state_job_abs(this_df,design_run)
+
+
+
+        plot_cell_state_graph_o_abs_states(this_df,design_run,'hrv_opr_idle_cnt','hrv_opr_start_setup_cnt','hrv_opr_setup_end_cnt','hrv_opr_booked_cnt','hrv_opr')
+        plot_cell_state_graph_o_abs_states(this_df,design_run,'mfg_opr_idle_cnt','mfg_opr_start_setup_cnt','mfg_opr_setup_end_cnt','mfg_opr_booked_cnt','mfg_opr')
+        plot_cell_state_graph_m_abs_states(this_df,design_run,'hrv_mc_idle_cnt','hrv_mc_start_setup_cnt','hrv_mc_setup_end_cnt','hrv_mc_busy_cnt','hrv_mc_booked_cnt','hrv_mc')
+        plot_cell_state_graph_m_abs_states(this_df,design_run,'mfg_mc_idle_cnt','mfg_mc_start_setup_cnt','mfg_mc_setup_end_cnt','mfg_mc_busy_cnt','mfg_mc_booked_cnt','mfg_mc')
+
+
+
 
 
         #stop = timeit.default_timer()
