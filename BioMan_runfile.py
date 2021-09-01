@@ -354,6 +354,8 @@ def Main():
         plot_cell_state_graph_for_abs_value(this_df,design_run,'mfg_mc_idle_cnt')
         plot_cell_state_job_abs(this_df,design_run)
         """
+        
+        """
         #plotting graphs to get png files
         plot_cell_state_graph_o(this_df,design_run,'hrv_opr_idle_cnt','hrv_opr_start_setup_cnt','hrv_opr_setup_end_cnt','hrv_opr_booked_cnt','hrv_opr')
         plot_cell_state_graph_o(this_df,design_run,'mfg_opr_idle_cnt','mfg_opr_start_setup_cnt','mfg_opr_setup_end_cnt','mfg_opr_booked_cnt','mfg_opr')
@@ -380,7 +382,7 @@ def Main():
         plot_cell_state_graph_o_abs_states(this_df,design_run,'mfg_opr_idle_cnt','mfg_opr_start_setup_cnt','mfg_opr_setup_end_cnt','mfg_opr_booked_cnt','mfg_opr')
         plot_cell_state_graph_m_abs_states(this_df,design_run,'hrv_mc_idle_cnt','hrv_mc_start_setup_cnt','hrv_mc_setup_end_cnt','hrv_mc_busy_cnt','hrv_mc_booked_cnt','hrv_mc')
         plot_cell_state_graph_m_abs_states(this_df,design_run,'mfg_mc_idle_cnt','mfg_mc_start_setup_cnt','mfg_mc_setup_end_cnt','mfg_mc_busy_cnt','mfg_mc_booked_cnt','mfg_mc')
-
+        """
 
 
 

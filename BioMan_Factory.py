@@ -55,7 +55,7 @@ class Environment():
         
 
         #params
-        self.patient_max_num = 2000  #maximum number of patients who can come for therapy
+        self.patient_max_num = 10  #maximum number of patients who can come for therapy
         self.patient_arrival_distribution = 'Uniform'
         self.conversion_factor = 140000   #blood count multiplication factor
         self.BV_m_LB = 5                  # lower bound of blood vol in male
@@ -65,7 +65,7 @@ class Environment():
         self.time_budget_for_Arrival = 1000# 8760  #total time for patient arrival in a year's time
         #self.time_budget_for_Harvesting = 1000
         #self.time_budget_for_Processing = 1000
-        self.Simulation_time_budget = 1000# 8760    #total time for patient arrival in a year's time
+        self.Simulation_time_budget = 5000# 8760    #total time for patient arrival in a year's time
         """
 
     def num_of_hrv_operators(self,i):
@@ -101,11 +101,11 @@ class Environment():
         if j == 0:
             MACHINES_HRV = 2#round(NUM_PATIENTS/2)
         elif j == 1:
-            MACHINES_HRV = 300#round(NUM_PATIENTS/5)
+            MACHINES_HRV = 3 #round(NUM_PATIENTS/5)
 
 
         if i == 0:
-            OPERATOR_HRV = 1#MACHINES_HRV/3#round(NUM_PATIENTS/5)
+            OPERATOR_HRV = 2 #MACHINES_HRV/3#round(NUM_PATIENTS/5)
         elif i == 1:
             OPERATOR_HRV = 3*MACHINES_HRV/4#round(NUM_PATIENTS/10)
 
@@ -119,13 +119,13 @@ class Environment():
     def num_of_mfg_operators_and_machine(self,i,j):        
         #Factor 6 corresponds to the Mfg operators count 
         if j == 0:
-            MACHINES_MFG = 100#round(NUM_PATIENTS/2)
+            MACHINES_MFG = 2 #round(NUM_PATIENTS/2)
         elif j == 1:
-            MACHINES_MFG = 300#round(NUM_PATIENTS/5)
+            MACHINES_MFG = 3 #round(NUM_PATIENTS/5)
 
 
         if i == 0:
-            OPERATOR_MFG = 3#MACHINES_MFG/20#round(NUM_PATIENTS/5)
+            OPERATOR_MFG = 2 #MACHINES_MFG/20#round(NUM_PATIENTS/5)
         elif i == 1:
             OPERATOR_MFG = 3*MACHINES_MFG/4#round(NUM_PATIENTS/10)
 
@@ -293,7 +293,7 @@ class Environment():
         hrv_machine_state_list = [m.state for m in self.hrv_machine_list]
         MFG_machine_state_list = [m.state for m in self.MFG_machine_list]
         #print(self.queue_1)
-        queue_state_list = [self.queue_1.jobs_in_queue, self.queue_2.jobs_in_queue,self.queue_3.jobs_in_queue]
+        queue_state_list = [[job.name for job in self.queue_1.jobs_in_queue], [job.name for job in self.queue_2.jobs_in_queue], [job.name for job in self.queue_3.jobs_in_queue]]
         job_state_list = [j.state for j in self.job_list]
         current_state_info = [hrv_operator_state_list, MFG_operator_state_list, QC_operator_state_list, hrv_machine_state_list, MFG_machine_state_list, queue_state_list, job_state_list]
         return current_state_info
@@ -583,22 +583,20 @@ class Environment():
             qc_duration = np.random.uniform(1, 2) 
             #schedule next
             print(event.job.id_num)
-            next_event = toolbox.Event('patient {} Quality Check'.format(event.job.id_num), 'Quality_check', self.clock, event.place, event.machine, event.operator, event.job, event.rework_times)
-            self.add_event(next_event)
-            
-        elif event.e_type == 'Quality_check':
+
             event.operator.end_qc()
             #event.job.put_job_to(None, 'Finish')
-            qc_duration = np.random.uniform(1, 2) 
             #schedule next
             #print(event.job.id_num)
             next_event = toolbox.Event('patient {} End Quality Check'.format(event.job.id_num), 'End_Quality_check', self.clock+qc_duration, event.place, event.machine, event.operator, event.job, event.rework_times)
             self.add_event(next_event)
-           
+            
 
         elif event.e_type == 'End_Quality_check':
             #process event
             test_result = self.quality_policy(self.QM_Policy_MFG, event.job)
+            #end for the machine
+            event.operator.end_qc()
             #print('test result on job {}:'.format(event.job.name), test_result)
             if test_result in ("Sample Rejected", "Rejected in LF and HF Both"):
                 #if fail the check, rework, arrival to queue_2
