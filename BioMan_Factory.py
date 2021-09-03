@@ -181,7 +181,8 @@ class Environment():
         self.hrv_machine_list = [toolbox.Machine('HM{}'.format(m+1), m+1, 'harvest') for m in range(0, int(self.Hrv_Bioreactors_Count))]
         self.MFG_operator_list = [toolbox.Operator('PO{}'.format(o+1), o+1, 'process') for o in range(0, int(self.MFG_Operators_Count))]
         self.MFG_machine_list = [toolbox.Machine('PM{}'.format(m+1), m+1, 'process') for m in range(0, int(self.MFG_Bioreactors_Count))]
-        self.QC_operator_list = [toolbox.Operator('QO{}'.format(q+1), q+1, 'qc') for q in range(0, int(self.QC_Operators_Count))]        
+        self.QC_operator_list = [toolbox.Operator('QO{}'.format(q+1), q+1, 'qc') for q in range(0, int(self.QC_Operators_Count))] 
+        self.QC_virtual_machine = toolbox.Machine('QC_VM', 1, 'Quality Control')
         self.finish_stack = []
         """
         Sets up the job list, mfg and hrv operators and machines  
@@ -420,7 +421,7 @@ class Environment():
                     chosen_operator = random.choice(self.get_available_operator('qc'))
                     #chosen_machine = random.choice(self.get_available_machine('process'))
                     #depart
-                    next_event = toolbox.Event('patient {} depart queue_3'.format(event.job.id_num), 'Departure', self.clock, self.queue_3, None, chosen_operator, event.job, event.rework_times)
+                    next_event = toolbox.Event('patient {} depart queue_3'.format(event.job.id_num), 'Departure', self.clock, self.queue_3, self.QC_virtual_machine, chosen_operator, event.job, event.rework_times)
                     event.job.booked()
                     chosen_operator.booked()
                     #chosen_machine.booked()
@@ -578,17 +579,13 @@ class Environment():
             #process event
             event.job.put_job_to(event.operator, 'qc')
             event.operator.start_qc(event.job)
+            event.place = self.QC_virtual_machine
+            
             #changing the operator end work to idle
             #event.machine.start_work(event.operator)
             qc_duration = np.random.uniform(1, 2) 
             #schedule next
-            print(event.job.id_num)
-
-            event.operator.end_qc()
-            #event.job.put_job_to(None, 'Finish')
-            #schedule next
-            #print(event.job.id_num)
-            next_event = toolbox.Event('patient {} End Quality Check'.format(event.job.id_num), 'End_Quality_check', self.clock+qc_duration, event.place, event.machine, event.operator, event.job, event.rework_times)
+            next_event = toolbox.Event('patient {} End Quality Check'.format(event.job.id_num), 'End_Quality_check', self.clock+qc_duration, event.machine, event.machine, event.operator, event.job, event.rework_times)
             self.add_event(next_event)
             
 
