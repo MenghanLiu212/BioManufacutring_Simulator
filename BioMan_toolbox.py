@@ -39,7 +39,7 @@ class Event:
         
 class Job:    
     #also called patient
-    def __init__(self, name, id_num, place, conversion_factor, BV_m_LB, BV_m_HB, BV_f_LB, BV_f_HB, alpha_low_ll, alpha_low_ul, alpha_up_ll, alpha_up_ul, delta_ll, delta_ul):
+    def __init__(self, name, id_num, place, conversion_factor, BV_m_LB, BV_m_HB, BV_f_LB, BV_f_HB, alpha_low_ll, alpha_low_ul, alpha_up_ll, alpha_up_ul, delta_ll, delta_ul,bad_pat_separator, average_pat_separator,good_pat_separator):
         self.name = name
         self.id_num = id_num
         self.place = place  #can be queue or machine
@@ -56,18 +56,18 @@ class Job:
         self.alpha_up_ul=alpha_up_ul    #higher limit of alpha up
         self.delta_ll=delta_ll          #lower limit of delta
         self.delta_ul=delta_ul          #upper limit of delta
+
         self.processingtime=0           #time at which processing is done
 
-
+        self.new_sample = 0             #counter for taking new sample when yield becomes to 0
 
         #gender generation
-        flip = random.randint(0, 1)
-        if (flip == 0):
+        flip2 = random.randint(0, 1)
+        if (flip2 == 0):
             gender = 'male'
         else:
             gender = 'female'
         self.gender = gender
-        
         #blood volume
         if (self.gender == 'Male'):
             BV = np.random.uniform(low = BV_m_LB, high = BV_m_HB) 
@@ -82,6 +82,42 @@ class Job:
         self.delta_mfg= np.random.uniform(delta_ll,delta_ul)
         self.alpha_up_mfg= np.random.uniform(alpha_up_ll,alpha_up_ul)
         self.alpha_low_mfg= np.random.uniform(alpha_low_ll,alpha_low_ul)
+
+
+
+        self.starttime=0                #time at which job enters the system
+        self.endtime=0                 #time at which job exits the syst
+        self.startprocessingtime=0      #time at which processing starts
+        self.endprocessingtime=0        #time at which processing ends
+        
+        self.startreworktime=0          #time at which rework starts
+        self.endreworktime=0            #time at which rework ends
+        self.reworkduration=0
+        
+        self.processing_duration=0
+
+        self.bad_pat_separator=bad_pat_separator
+        self.average_pat_separator=average_pat_separator
+        self.good_pat_separator=good_pat_separator
+
+        separator1=bad_pat_separator+average_pat_separator
+
+        #good bad or average patient
+        flip1 = np.random.uniform(0, 1)
+        #if (flip1 ):
+        if (flip1<=self.bad_pat_separator):
+            patient_type = 'bad'
+
+        elif (self.bad_pat_separator<flip1<=separator1):
+            patient_type= 'average'
+
+        else:
+            patient_type = 'good'
+        self.patient_type = patient_type    
+
+
+        
+
         
     def rework(self):
         self.rework_times += 1
@@ -93,9 +129,37 @@ class Job:
     def booked(self):
         self.state = 'booked'
 
-    def save_process_time(self, time):
-        self.processingtime=time
-        
+    def save_startprocess_time(self, time):
+        self.startprocessingtime = time
+
+    def save_endprocess_time(self, time):
+        self.endprocessingtime = time
+
+    def save_entime(self,time):
+        self.endtime = time
+
+    def save_starttime(self,time):
+        self.starttime = time
+
+
+    def calculate_duration(self):
+        if self.rework_times==0:
+        #if process == 'process_duration'
+            self.processing_duration=self.endprocessingtime - self.startprocessingtime
+            #.df_job['Processing_Time'].where(~(self.df_job.Job_number == event.job.id_num), other = event.job.processing_duration , inplace = True)
+        else:
+        #if process == 'rework'
+            self.reworkduration=self.endprocessingtime-self.startprocessingtime
+            #self.df_job['Rework Time'].where(~(self.df_job.Job_number == event.job.id_num), other = event.job.reworkduration , inplace = True)
+        #something to append to these values to the job_df
+
+
+
+
+
+
+
+
 
 class Queue:
     def __init__(self, name, q_type, capacity, place):
