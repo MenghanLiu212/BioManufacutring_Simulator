@@ -22,3 +22,11 @@ In QC we have 50 qc operators.
 
 The operator becomes free(idle) once the machine is setup and manufacturing starts. This allows him to be assigned to other available machine and job in queue.
 The harvesting and processing times consist of the harvesting as well as transportation time from one stage to other. (hrv -> mfg, mfg -> qc)
+
+
+Updated on 10/01/2021
+Changes to the code
+We now consider that if yield goes to zero we send the job back to Queue 1.
+We have to update the values and data in the the job (look into it)
+Put a if statement to check if job is a new arrival or a rework.
+Make changes in df_job
