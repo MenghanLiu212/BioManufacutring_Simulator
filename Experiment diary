@@ -30,3 +30,9 @@ We now consider that if yield goes to zero we send the job back to Queue 1.
 We have to update the values and data in the the job (look into it)
 Put a if statement to check if job is a new arrival or a rework.
 Make changes in df_job
+
+
+04/02/2022
+We changed the approach for the simulation.
+Earlier we generated the duration of the job processing using alpha and delta values.
+Now we generate alpha values using the duration and delta values.
