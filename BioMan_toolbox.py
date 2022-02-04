@@ -6,8 +6,9 @@ This is the file defining objects and tool functions.
 """
 import pandas as pd
 import numpy as np
-import pyDOE2
+#import pyDOE2
 import random
+
 
     
     
@@ -39,7 +40,7 @@ class Event:
         
 class Job:    
     #also called patient
-    def __init__(self, name, id_num, place, conversion_factor, BV_m_LB, BV_m_HB, BV_f_LB, BV_f_HB, alpha_low_ll, alpha_low_ul, alpha_up_ll, alpha_up_ul, delta_ll, delta_ul,bad_pat_separator, average_pat_separator,good_pat_separator):
+    def __init__(self, name, id_num, place, conversion_factor, BV_m_LB, BV_m_HB, BV_f_LB, BV_f_HB, mfg_time_separator_1, mfg_time_separator_2, delta_mix_1, delta_mix_2, bad_pat_separator, average_pat_separator,good_pat_separator):
         self.name = name
         self.id_num = id_num
         self.place = place  #can be queue or machine
@@ -50,16 +51,49 @@ class Job:
         self.BV_m_HB=BV_m_HB            #higher bound of male blood vol
         self.BV_f_LB=BV_f_LB            #lower bound of female blood vol
         self.BV_f_HB=BV_f_HB            #higher bound of female blood vol
-        self.alpha_low_ll=alpha_low_ll  #lower limit of alpha low 
-        self.alpha_low_ul=alpha_low_ul  #higher limit of alpha low
-        self.alpha_up_ll=alpha_up_ll    #lower limit of alpha up
-        self.alpha_up_ul=alpha_up_ul    #higher limit of alpha up
-        self.delta_ll=delta_ll          #lower limit of delta
-        self.delta_ul=delta_ul          #upper limit of delta
+        self.mfg_time_separator_1 = mfg_time_separator_1
+        self.mfg_time_separator_2 = mfg_time_separator_2
+        self.manufacturing_time = 0    #time taken to manufacture i.e upward slope
+        
+        self.delta_mix_1 = delta_mix_1
+        self.delta_mix_2 = delta_mix_2
+        
+        self.alpha_low_mfg = 0
+        self.delta_time = 0
 
         self.processingtime=0           #time at which processing is done
 
         self.new_sample = 0             #counter for taking new sample when yield becomes to 0
+
+
+        self.bad_pat_separator=bad_pat_separator
+        self.average_pat_separator=average_pat_separator
+        self.good_pat_separator=good_pat_separator
+
+
+
+
+        #generate alpha_low and alpha_up using mfg_mix and delta with coin toss
+
+
+        #good bad or average patient
+        separator1=bad_pat_separator+average_pat_separator
+        flip1 = np.random.uniform(0, 1)
+        #if (flip1 ):
+        if (flip1<=self.bad_pat_separator):
+            patient_type = 'bad'
+
+        elif (self.bad_pat_separator<flip1<=separator1):
+            patient_type= 'average'
+
+        else:
+            patient_type = 'good'
+        self.patient_type = patient_type    
+
+
+
+
+
 
         #gender generation
         flip2 = random.randint(0, 1)
@@ -78,10 +112,62 @@ class Job:
         #tgt bc
         self.patients_target_bc = self.BV*conversion_factor
 
+
+        """
+
+        #time for manufacturing
+        flip3 = np.random.uniform(0, 1)
+        mfg_time_separator = self.mfg_time_separator_1 + self.mfg_time_separator_2
+        #if (flip1 ):
+        if (flip2<=self.mfg_time_separator_1):
+            self.manufacturing_time = 7 #days or use distribution  5 to 9, 9 to 17, 17 to 23
+
+        elif (self.mfg_time_separator_1<flip2<= mfg_time_separator):
+            self.manufacturing_time = 14 #days
+
+        else:
+            self.manufacturing_time = 20 #days
+
+
+
+
+        #self.delta_time = delta           #time taken for the yield to remain at max and then decay i.e. plateau            
+        #time for manufacturing
+        flip4 = np.random.uniform(0, 1)
+        delta_time_separator = self.delta_mix_1 + self.delta_mix_2
+        #if (flip1 ):
+        if (flip4<=self.delta_mix_1):
+            self.delta_time = 6 #hours          #hours or use distribution  5 to 9, 9 to 17, 17 to 23
+
+        elif (self.delta_mix_1<flip4<=delta_time_separator):
+            self.delta_time = 12 #hours
+
+        else:
+            self.delta_time = 24 #hours
+
+
+
+
+
+        self.alpha_low_mfg = self.patients_target_bc * self.manufacturing_time * 24
+
+
+
+        """
+
+
+
+
+
+
+
+
+
+
         #delta, alpha_up, alpha_low values generated from the limits
-        self.delta_mfg= np.random.uniform(delta_ll,delta_ul)
-        self.alpha_up_mfg= np.random.uniform(alpha_up_ll,alpha_up_ul)
-        self.alpha_low_mfg= np.random.uniform(alpha_low_ll,alpha_low_ul)
+        #self.delta_mfg= np.random.uniform(delta_ll,delta_ul)
+        #self.alpha_up_mfg= np.random.uniform(alpha_up_ll,alpha_up_ul)
+        #self.alpha_low_mfg= np.random.uniform(alpha_low_ll,alpha_low_ul)
 
 
 
@@ -94,30 +180,18 @@ class Job:
         self.endreworktime=0            #time at which rework ends
         self.reworkduration=0
         
-        self.processing_duration=0
-
-        self.bad_pat_separator=bad_pat_separator
-        self.average_pat_separator=average_pat_separator
-        self.good_pat_separator=good_pat_separator
-
-        separator1=bad_pat_separator+average_pat_separator
-
-        #good bad or average patient
-        flip1 = np.random.uniform(0, 1)
-        #if (flip1 ):
-        if (flip1<=self.bad_pat_separator):
-            patient_type = 'bad'
-
-        elif (self.bad_pat_separator<flip1<=separator1):
-            patient_type= 'average'
-
-        else:
-            patient_type = 'good'
-        self.patient_type = patient_type    
+        self.final_processing_time = 0  #time till when 
 
 
-        
 
+
+
+
+
+        self.queue_state = 'initial'
+
+    def put_job_in_queue(self, state):
+        self.queue_state = state
         
     def rework(self):
         self.rework_times += 1
@@ -135,11 +209,12 @@ class Job:
     def save_endprocess_time(self, time):
         self.endprocessingtime = time
 
-    def save_entime(self,time):
+    def save_endtime(self,time):
         self.endtime = time
 
     def save_starttime(self,time):
         self.starttime = time
+
 
 
     def calculate_duration(self):
@@ -260,12 +335,24 @@ class Operator:
         self.job = job
         self.machine = None
         self.state = 'idle' #can we put idle here for our case
+
+
+    def collecting(self,time):
+        self.state = 'busy'
     """    
     def end_work(self):
         self.job = None
         self.machine = None
         self.state = 'idle'
     """
+
+    def end_work(self):
+        self.job = None
+        self.machine = None
+        self.state = 'idle'
+
+
+
     def start_qc(self,job):
         self.job = job
         self.state = 'busy'
